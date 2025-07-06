@@ -1,0 +1,28 @@
+---
+title: "CompBioOdyssey: Reboot Journal"
+author: "Sanjay Prakadan"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## 🧬 Welcome
+
+This is the beginning of my journey back into computational biology. It's been a little while (almost 5 years), and since then we've veered off the career path. Today marks an effort to return to basics, understand the current landscape, rediscovery my passion for science, and learn/share along the way.
+
+### Goals
+
+-   Practice R and data visualization
+-   Explore single-cell and multi-omics analysis
+-   Integrate AI into bioinformatics workflows
+-   Share progress openly via GitHub and Twitter
+
+------------------------------------------------------------------------
+
+## 🧪 Test Chunk
+
+```{r}
+# A simple plot test
+x <- rnorm(100)
+hist(x, col = "steelblue", main = "Test Histogram", xlab = "Random Values")
+
+```

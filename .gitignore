@@ -47,3 +47,41 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+=======
+# R + RStudio
+.Rhistory
+.RData
+.Rproj.user
+.Ruserdata
+
+# MacOS junk
+.DS_Store
+
+# Python cache (if you use Python too)
+__pycache__/
+
+# Large or intermediate data
+data/raw/
+data/processed/
+
+# Output files
+outputs/
+
+# Compiled files
+*.html
+*.pdf
+
+# Ignore RStudio session files
+.Rproj.user/
+
+# Ignore output files if large or regenerable
+outputs/
+
+# Ignore data files if large
+data/*.fastq
+data/*.bam
+data/*.csv
+
+# Ignore other files you don't want in repo
+*.Rhistory
+*.RData
