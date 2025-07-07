@@ -43,6 +43,6 @@ Contributions and suggestions are welcome! Feel free to open issues or submit pu
 This project is licensed under the MIT License.
 
 ## Contact
-Created by Sanjay Prakadan.  
-Email: jprakadanm@gmail.com  
+Created by JP.  
+Email: 17519269+jprkdn@users.noreply.github.com 
 Twitter: [@compbiodyssey](https://twitter.com/compbiodyssey)
