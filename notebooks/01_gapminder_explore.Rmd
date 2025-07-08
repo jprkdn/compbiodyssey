@@ -1,0 +1,242 @@
+---
+title: "Day 2 – Tidyverse Practice & Visualization"
+author: "JP"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+```
+
+## Load Data
+
+```{r load-data}
+# Example: load gapminder or palmerpenguins
+install.packages('gapminder')
+library(gapminder)
+data <- gapminder
+# or use: library(palmerpenguins); data <- penguins
+```
+
+## Explore & Wrangle Data - Guided
+
+```{r explore-wrangle}
+# Preview structure
+head(data)
+tail(data)
+
+# Filter example
+filtered_data <- data %>%
+  filter(year == 2007) %>%
+  select(country, continent, lifeExp, gdpPercap)
+
+# Grouped summary example
+summary_stats <- data %>%
+  group_by(continent) %>%
+  summarise(
+    avg_lifeExp = mean(lifeExp, na.rm = TRUE),
+    avg_gdp = mean(gdpPercap, na.rm = TRUE)
+  )
+summary_stats
+```
+
+## Explore & Wrangle Data - Self
+
+```{r explore-wrangle}
+# Total entries per country
+data %>%
+  count(country)
+## 12 entries per country
+
+# Delta between earliest and latest year for each country
+delta_df <- data %>% 
+  group_by(country) %>%
+  summarize(earliest = min(year), 
+            latest = max(year), 
+            holdingtime = latest - earliest)
+
+head(delta_df)
+## all deltas are the same
+
+# Delta between earliest and latest year for each country
+delta_df <- data %>% 
+  group_by(country) %>%
+  summarize(earliest = min(year), 
+            latest = max(year), 
+            holdingtime = latest - earliest)
+
+head(delta_df)
+
+lf_range <- data %>%
+  group_by(country) %>%
+  summarize(range_lfe = range(lifeExp)[2]-range(lifeExp)[1],
+            range_pop = range(pop)[2]-range(pop)[1],
+            range_gdp = range(gdpPercap)[2]-range(gdpPercap)[1])
+
+lf_range
+```
+
+### Data Visualization - Guided
+
+```{r scatterplot}
+# Scatter plot example
+ggplot(data, aes(x = gdpPercap, y = lifeExp, color = continent)) +
+  geom_point(alpha = 0.6) +
+  scale_x_log10() +
+  labs(
+    title = "Life Expectancy vs GDP per Capita",
+    x = "GDP per Capita (log10)",
+    y = "Life Expectancy"
+  ) +
+  theme_minimal()
+```
+
+```{r boxplot}
+# Boxplot example
+ggplot(data, aes(x = continent, y = lifeExp, fill = continent)) +
+  geom_boxplot() +
+  labs(
+    title = "Life Expectancy Distribution by Continent",
+    x = "Continent",
+    y = "Life Expectancy"
+  ) +
+  theme_classic()
+```
+
+### Data Visualization - Self
+
+Let's think about some interesting questions we can ask about this data:
+1. What countries had the highest change in their life expectancy in the span of years?
+2. What countries had the lowest change in their life expectacy in the span of years?
+3. Repeat this exercise for gDP and population
+4. What countries in each continent had  highest & lowest of each of these 3 variables?
+5. What is the relationship between gDP and population over the time period? Can we plot gDP vs. population across this time period and what does it tell us?
+6. How is this divided up by continent?
+7. What is the relationship between gDP and life expectancy? Plot that. Divide it up by continent. Do the same for population vs. life expectancy.
+8. Are there any countries with interesting differences between these three variables?
+9. Can we find countries that are highly correlated across these variables? Or at least build a dataset of correlation coefficients.
+
+```{r analysis}
+# Highest & lowest change in life expectancy
+# We already created 'lf_delta' we can use it to find
+
+head(arrange(lf_range,range_lfe))[1:3,]
+tail(arrange(lf_range,range_lfe))[1:3,]
+
+head(arrange(lf_range,range_pop))[1:3,]
+tail(arrange(lf_range,range_pop))[1:3,]
+
+head(arrange(lf_range,range_gdp))[1:3,]
+tail(arrange(lf_range,range_gdp))[1:3,]
+
+# Answers 1, 2, 3
+```
+
+```{r analysis}
+
+# For 4, let's recreate the lf_range table to include continent
+lf_range <- data %>%
+  group_by(country, continent) %>%
+  summarize(range_lfe = range(lifeExp)[2]-range(lifeExp)[1],
+            range_pop = range(pop)[2]-range(pop)[1],
+            range_gdp = range(gdpPercap)[2]-range(gdpPercap)[1])
+
+# Now for Africa:
+head(arrange(
+  lf_range[
+    lf_range$continent==levels(lf_range$continent)[1],
+    ],
+  range_lfe
+  ))[1,]
+
+# Let's do this for all continents
+
+lowest_lfe_by_continent <- do.call(rbind,lapply(levels(lf_range$continent), function(cont){
+  lf_range_sub = lf_range[lf_range$continent == cont, ]
+  lf_range_sub[which.min(lf_range_sub$range_lfe), ]
+}))
+
+# do.call will call the rbind function over the results of the lapply
+# lapply across the levels of lf_range$continent (which is all the continents)
+# fun the function for variable cont, which is defined as:
+# lf_range_sub = lf_range[lf_range$continent==cont,] subset based on cont
+# lf_range_sub[which.min(lf_range_sub$range_lfe),] select the minimum value of range_lfe of the subsetted dataframe on cont.
+
+# Repeat this for the highest value
+highest_lfe_by_continent <- do.call(rbind,lapply(levels(lf_range$continent), function(cont){
+  lf_range_sub = lf_range[lf_range$continent == cont, ]
+  lf_range_sub[which.max(lf_range_sub$range_lfe), ]
+}))
+
+# And repeat for the other variables pop_range and gdp_range
+lowest_pop_by_continent <- do.call(rbind,lapply(levels(lf_range$continent), function(cont){
+  lf_range_sub = lf_range[lf_range$continent == cont, ]
+  lf_range_sub[which.min(lf_range_sub$range_pop), ]
+}))
+
+highest_pop_by_continent <- do.call(rbind,lapply(levels(lf_range$continent), function(cont){
+  lf_range_sub = lf_range[lf_range$continent == cont, ]
+  lf_range_sub[which.max(lf_range_sub$range_pop), ]
+}))
+
+lowest_gdp_by_continent <- do.call(rbind,lapply(levels(lf_range$continent), function(cont){
+  lf_range_sub = lf_range[lf_range$continent == cont, ]
+  lf_range_sub[which.min(lf_range_sub$range_gdp), ]
+}))
+
+highest_gdp_by_continent <- do.call(rbind,lapply(levels(lf_range$continent), function(cont){
+  lf_range_sub = lf_range[lf_range$continent == cont, ]
+  lf_range_sub[which.max(lf_range_sub$range_gdp), ]
+}))
+
+lowest_lfe_by_continent
+highest_lfe_by_continent
+lowest_pop_by_continent
+highest_pop_by_continent
+lowest_gdp_by_continent
+highest_gdp_by_continent
+
+
+```
+
+```{r scatterplot}
+# For 5, we'll employ a scatterplot
+
+# Scatter plot example
+
+plotbb <- lapply(1:9, function(x) {
+  ggplot(data[data$country == levels(data$country)[x], ],
+         aes(x = gdpPercap, y = pop)) +
+    geom_point(alpha = 0.6, size = 1) +  # Fixed alpha value
+    labs(
+      title = paste("Population vs GDP per Capita -", levels(data$country)[x]),
+      x = "GDP per Capita",
+      y = "Population"
+    ) +
+    theme_minimal()
+})
+# here be sure that the function defining lapply is the plotting function and the entry is outside lapply
+
+#install.packages('gridExtra') this is bad practice, we should install required packages at the beginning
+library(gridExtra)
+
+#grid.arrange(plotbb,ncol = 3)
+do.call(grid.arrange, c(plotbb, ncol = 3))
+#here we do.call because grid.arrange expects different arguments as a list. so do.call is taking grid.arrange, and applying it each of the components of plotbb one at a time.
+
+```
+## Tomorrow we will calculate the coefficients and explore more...
+
+
+## ✏️ Observations & Notes
+
+- Which continents had the widest spread in life expectancy?
+- What do log-transformed GDP values show us in the scatter plot?
+- Anything unexpected in the summaries?
+
+## 📤 Next Steps
+
+- Try this with a biological dataset (e.g., gene expression summary or sample metadata)
+- Practice joins, pivoting, or reshaping tomorrow

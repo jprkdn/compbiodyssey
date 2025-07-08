@@ -64,9 +64,6 @@ __pycache__/
 data/raw/
 data/processed/
 
-# Output files
-outputs/
-
 # Compiled files
 *.html
 *.pdf
@@ -80,7 +77,6 @@ outputs/
 # Ignore data files if large
 data/*.fastq
 data/*.bam
-data/*.csv
 
 # Ignore other files you don't want in repo
 *.Rhistory
