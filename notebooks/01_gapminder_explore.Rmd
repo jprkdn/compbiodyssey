@@ -230,6 +230,8 @@ do.call(grid.arrange, c(plotbb, ncol = 3))
 ## Tomorrow we will calculate the coefficients and explore more...
 
 
+
+
 ## ✏️ Observations & Notes
 
 - Which continents had the widest spread in life expectancy?

@@ -1,0 +1,130 @@
+---
+title: "BED File Analysis"
+output: html_document
+---
+
+# Week 1: Practice with BED files
+
+This notebook is designed to teach me how to work with BED files. BED files are text files format used in bioinformatics to store genomic region data. They typically contain information about the location of features on a chromosome, like genes, exons, or binding sites, making them useful for visualizing and analyzing genomic data.
+
+---
+
+## Load libraries
+```{r, setup, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+##when I run this chunk, it loads tidyverse
+---
+
+##Load the BED file
+```{r}
+bed_path = "/Users/Jay/Documents/My Projects/compbio-projects/compbiodyssey/data/mock_genes.bed"
+bed_df = read_tsv(bed_path, col_names = FALSE)
+colnames(bed_df) = c("chr","start","end","gene")
+head(bed_df)
+dim(bed_df)
+```
+
+---
+
+###Calculate gene sizes
+
+```{r}
+bed_df = bed_df %>%
+  mutate(size = end - start)
+head(bed_df)
+```
+This is a new feature of tidyverse called pipe operation. Basically you take the output of the left side (bed_df) as an input to the function on the right [mutate(size = end-start)]. Mutate is a dplyr function. It does: mutate(new_column = expression_using_existing_columns). Previously, I've created functions with data frames as entire other blocks of code. This is no longer necessary with mutate. For example:
+
+bed_df$size = bed_df$end - bed-df$start, but this is less elegant.
+
+Also a note, bed_df = bed_df %>% mutate(size = end-start) means bed_df = mutate(bed_df, size = end-start). It takes the left and makes it the first argument of the function on the right. The output of the pipe chain becomes the input to the next function. An example of chaining looks like this:
+
+bed_df = read_tsv("file.bed",col_names = FALSE) %>%
+setNames(c("chr","start","end","gene")) %>%
+mutate(size = end - start) %>%
+filter(size<6000) %>%
+arrange(desc(start)) %>%
+head(5)
+
+---
+# My own practice: try to perform all the actions with the BED file as a chain:
+# Load BED file
+# change column names
+# calculate gene sizes
+
+```{r}
+bed_df = read_tsv("/Users/Jay/Documents/My Projects/compbio-projects/compbiodyssey/data/mock_genes.bed",col_names = F) %>%
+  setNames(c("chr","start","end","gene")) %>%
+  mutate(size = end - start)
+dim(bed_df)
+head(bed_df)
+```
+
+---
+# Plot histogram of gene sizes
+
+```{r}
+ggplot(bed_df, aes(x = size)) +
+  geom_histogram(aes(y = ..density..),
+                 binwidth = 1000,
+                 fill = "skyblue",
+                 color = "black") +
+  geom_density(color = "red",size = 0.5,alpha = 0.5) +
+  labs(title = "Histogram of Gene Sizes", x = "Gene Size (bp)", y = "Count") +
+  theme_minimal()
+```
+
+
+---
+
+# Identify the largest gene
+
+```{r}
+largest_gene = arrange(bed_df,desc(size))[1,'gene']
+largest_gene
+
+```
+
+---
+
+# A potentially better way to do it is:
+```{r}
+largest_gene = bed_df %>% arrange(desc(size)) %>% slice(1) %>% pull(gene)
+largest_gene
+```
+
+---
+
+# An even better way to do it is:
+```{r}
+largest_gene = bed_df %>% filter(size == max(size)) %>% pull(gene)
+largest_gene
+```
+
+---
+
+# Find the largest intergenic gap:
+
+```{r}
+bed_df = bed_df %>% arrange(start)
+
+gaps = bed_df %>%
+  mutate(gap = lead(start)-end) %>%
+  mutate(gene_gap = paste(gene,lead(gene),sep = " - ")) %>%
+  setNames(c("chr","start","end","gene","size","gap","gap genes"))
+gaps
+  
+largest_gap = gaps %>%
+  arrange(desc(gap)) %>%
+  slice(1) %>%
+  pull("gap genes")
+largest_gap
+```
+
+## Summary
+
+- Loaded and parsed a BED file
+- Calculated gene sizes
+- Identified largest gene and largest intergenic gap
+- Created basic plots with `ggplot2`

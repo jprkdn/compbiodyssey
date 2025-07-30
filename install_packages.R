@@ -16,8 +16,8 @@ cran_packages <- c(
 )
 
 github_packages <- c(
-  "yourgithubuser/cbcore",
-  "yourgithubuser/cbsession"
+  "cbcore",
+  "cbsession"
 )
 
 # -------- 2. Install Missing CRAN Packages --------
