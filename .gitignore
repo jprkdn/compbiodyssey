@@ -61,8 +61,7 @@ rsconnect/
 __pycache__/
 
 # Large or intermediate data
-data/raw/
-data/processed/
+data/
 
 # Compiled files
 *.html
