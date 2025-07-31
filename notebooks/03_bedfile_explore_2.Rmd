@@ -150,7 +150,115 @@ bed_file = bed_file %>% mutate(length = end-start)
 
 ---
 
+### What is the total genomic coverage per chromosome?
+Let's break this problem down
+For each chromosome, I want to calculate "coverage", which I guess means the percentage of bases that are assigned to at least one region. Let's figure that out.
 
+This isn't true, it's about the number of unique bases. That's way easier.
+```{r}
+tot_base = bed_file %>% group_by(chrom) %>%
+  summarize(tot_base = max(end)-min(start))
+# wrong because this is the span not the coverage
 
+tot_gaps = bed_file %>% arrange(chrom,start) %>%
+  group_by(chrom) %>%
+  mutate(tot_gap = lead(start)-end) %>%
+  filter(tot_gap>0) %>%
+  summarize(tot_gap = sum(tot_gap,na.rm = TRUE))
+# this is the total gap
+
+# subtract to get total coverage
+tot_cov = tot_base %>% pull(tot_base) - tot_gaps %>% pull(tot_gap)
+
+# Can also use this to solve the previous problem:
+tot_pct_cov = tot_cov/tot_base %>% pull(tot_base)
+
+tot_cov
+tot_pct_cov
+
+```
+
+---
+
+# Calculate the average interval length per chromosome
+
+```{r}
+bed_file %>% arrange(chrom,start) %>%
+  mutate(interval = end - start)
+  group_by(chrom) %>%
+  summarize(avg_ilength = mean(interval))
+
+```
+
+---
+
+# Count the number of intervals that are at least 1000 base pairs long.
+I'm gonna do this per chromosome and total
+```{r}
+bed_file %>% arrange(chrom,start) %>%
+  mutate(interval = end - start) %>%
+  filter(interval > 1000) %>%
+  summarize(n())
+
+bed_file %>% arrange(chrom,start) %>%
+  mutate(interval = end - start) %>%
+  filter(interval > 1000) %>%
+  group_by(chrom) %>%
+  summarize(n())
+
+```
+
+---
+
+## Find the interval with the maximum length on each chromosome.
+
+```{r}
+bed_file %>% arrange(chrom,start) %>%
+  mutate(interval = end - start) %>%
+  group_by(chrom) %>%
+  slice_max(interval)
+  
+```
+
+---
+
+## Find the median interval length per chromosome.
+
+```{r}
+bed_file %>% arrange(chrom,start) %>%
+  mutate(interval = end - start) %>%
+  group_by(chrom) %>%
+  summarize(median(interval))
+
+```
+---
+
+# Find the number of intervals that overlap with at least one other interval on the same chromosome
+
+```{r}
+bed_file %>% arrange(chrom,start) %>%
+  group_by(chrom) %>%
+  mutate(overlap1 = lag(end)-start) %>%
+  mutate(overlap2 = end-lead(start)) %>%
+  filter(overlap1>0 | overlap2>0) %>%
+  summarize(n())
+
+```
+
+---
+
+# Identify all chromosomes that contain overlapping intervals and return them as a vector.
+
+I interpret this as meaning identify all chromosomes where there's intervals that overlap. This means that I can probably just do the same thing again, and then return the vector of chromosomes.
+```{r}
+bed_file %>% arrange(chrom,start) %>%
+  group_by(chrom) %>%
+  mutate(overlap1 = lag(end) - start) %>%
+  mutate(overlap2 = end - lead(start)) %>%
+  filter(overlap1>0 | overlap2 > 0) %>%
+  summarize(n()) %>%
+  pull(chrom)
+
+```
 
 
